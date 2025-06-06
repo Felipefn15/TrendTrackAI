@@ -1,7 +1,7 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { storage } from "../server/storage.js";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { storage } from '../../server/storage.js';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -12,12 +12,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { url, method } = req;
-  const path = url?.replace('/api', '') || '/';
+  const { slug } = req.query;
+  const path = Array.isArray(slug) ? `/${slug.join('/')}` : `/${slug}`;
 
   try {
     // Dashboard endpoint
-    if (path === '/dashboard' && method === 'GET') {
+    if (path === '/dashboard' && req.method === 'GET') {
       const trends = await storage.getRecentTrends(24);
       const suggestions = await storage.getRecentSuggestions(24);
       const sources = await storage.getAllSources();
@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Scheduler status endpoint
-    if (path === '/scheduler/status' && method === 'GET') {
+    if (path === '/scheduler/status' && req.method === 'GET') {
       return res.json({
         enabled: true,
         nextScraping: "Next scraping: Every 2 hours",
@@ -42,19 +42,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Sources endpoints
-    if (path === '/sources' && method === 'GET') {
+    if (path === '/sources' && req.method === 'GET') {
       const sources = await storage.getAllSources();
       return res.json(sources);
     }
 
     // Settings endpoints
-    if (path === '/settings' && method === 'GET') {
+    if (path === '/settings' && req.method === 'GET') {
       const settings = await storage.getAllSettings();
       return res.json(settings);
     }
 
     // Reports endpoints
-    if (path === '/reports' && method === 'GET') {
+    if (path === '/reports' && req.method === 'GET') {
       const reports = await storage.getAllReports();
       return res.json(reports);
     }
