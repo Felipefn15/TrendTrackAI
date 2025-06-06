@@ -1,8 +1,4 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
-    }
-  ]
+  "buildCommand": "vite build",
+  "outputDirectory": "dist"
 }
