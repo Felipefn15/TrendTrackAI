@@ -207,16 +207,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/scrape", async (req, res) => {
     try {
       const { platform } = req.body;
-      
-      let result;
+
       if (platform) {
         const data = await scrapeSingleSource(platform);
-        result = { success: true, data, errors: [], timestamp: new Date().toISOString() };
+        res.json({ success: true, data, errors: [], timestamp: new Date().toISOString() });
       } else {
-        result = await scrapeAllSources();
+        // Full scrape: run complete pipeline (scrape + AI analysis + persist)
+        await runTrendAnalysis();
+        res.json({ success: true, message: "Scraping and analysis completed", timestamp: new Date().toISOString() });
       }
-      
-      res.json(result);
     } catch (error) {
       res.status(500).json({ message: "Scraping failed", error: error instanceof Error ? error.message : String(error) });
     }

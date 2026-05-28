@@ -1,9 +1,10 @@
-import OpenAI from "openai";
+import Groq from "groq-sdk";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_KEY || ""
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY || ""
 });
+
+const MODEL = "llama-3.3-70b-versatile";
 
 export interface AnalyzedTrend {
   title: string;
@@ -32,15 +33,15 @@ export async function analyzeTrends(rawData: Array<{
   try {
     const prompt = `
     Analyze the following cultural trend data for fashion/lifestyle brands and extract meaningful trends.
-    
+
     Data: ${JSON.stringify(rawData)}
-    
+
     Please identify and analyze trends focusing on:
     - Fashion and lifestyle relevance
     - Cultural significance
     - Brand opportunity potential
     - Trend momentum and growth
-    
+
     For each trend, provide:
     - title: Clear, engaging trend name
     - description: 2-3 sentences explaining the trend and its cultural significance
@@ -49,16 +50,16 @@ export async function analyzeTrends(rawData: Array<{
     - trendScore: 0-100 (trend strength/momentum)
     - changePercentage: -100 to +500 (growth rate)
     - impact: "high", "medium", or "low" (potential brand impact)
-    
-    Return as JSON array of trend objects. Only include trends with confidence > 70.
+
+    Return as JSON object with a "trends" array. Only include trends with confidence > 70.
     `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const response = await groq.chat.completions.create({
+      model: MODEL,
       messages: [
         {
           role: "system",
-          content: "You are a cultural trend analyst specializing in fashion and lifestyle brands. Respond with valid JSON only."
+          content: "You are a cultural trend analyst specializing in fashion and lifestyle brands. Respond with valid JSON only, no markdown."
         },
         {
           role: "user",
@@ -82,31 +83,27 @@ export async function generateBrandSuggestions(trends: AnalyzedTrend[]): Promise
     const prompt = `
     Based on these cultural trends, generate 2-3 creative brand response suggestions for each trend.
     Focus on fashion/lifestyle brand opportunities.
-    
+
     Trends: ${JSON.stringify(trends)}
-    
+
     For each suggestion, provide:
     - title: Catchy, actionable suggestion name
     - description: 2-3 sentences explaining the opportunity and execution
     - impact: "high", "medium", "low" (business impact potential)
     - effort: "high", "medium", "low" (implementation difficulty)
     - type: "strategic" (long-term initiatives), "content" (marketing/content), "partnership" (collaborations), "quick-win" (fast implementation)
-    
-    Prioritize suggestions that are:
-    - Actionable and specific
-    - Relevant to fashion/lifestyle brands
-    - Feasible to implement
-    - Differentiated from competitors
-    
-    Return as JSON array of suggestion objects.
+
+    Prioritize suggestions that are actionable, relevant to fashion/lifestyle brands, and differentiated.
+
+    Return as JSON object with a "suggestions" array.
     `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const response = await groq.chat.completions.create({
+      model: MODEL,
       messages: [
         {
           role: "system",
-          content: "You are a brand strategist specializing in fashion and lifestyle. Generate creative, actionable brand opportunities. Respond with valid JSON only."
+          content: "You are a brand strategist specializing in fashion and lifestyle. Generate creative, actionable brand opportunities. Respond with valid JSON only, no markdown."
         },
         {
           role: "user",
@@ -132,21 +129,21 @@ export async function generateEmailSummary(trends: AnalyzedTrend[], suggestions:
 
     const prompt = `
     Create an engaging email summary for a daily cultural trends report.
-    
+
     Top Trends: ${JSON.stringify(topTrends)}
     Top Suggestions: ${JSON.stringify(topSuggestions)}
-    
+
     Write a brief, engaging summary (2-3 paragraphs) that:
     - Highlights the most important cultural shifts
     - Explains why these trends matter for fashion/lifestyle brands
     - Teases the brand opportunities included in the report
     - Maintains an expert but accessible tone
-    
-    Do not include HTML formatting - this will be converted to HTML later.
+
+    Do not include HTML formatting - plain text only.
     `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const response = await groq.chat.completions.create({
+      model: MODEL,
       messages: [
         {
           role: "system",

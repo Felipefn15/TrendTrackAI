@@ -45,9 +45,10 @@ export default function Sources() {
     onSuccess: (data) => {
       toast({
         title: "Scraping completed",
-        description: `Successfully collected ${data.data?.length || 0} data points`,
+        description: data.message || `Successfully collected ${data.data?.length || 0} data points`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/sources'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
     },
     onError: (error) => {
       toast({
